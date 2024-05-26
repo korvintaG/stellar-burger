@@ -21,7 +21,6 @@ export const Login: FC = () => {
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
-    console.log('handleSubmit', email, password);
     dispatch(loginUser({ email, password }));
   };
 
