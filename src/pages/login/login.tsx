@@ -1,17 +1,37 @@
 import { FC, SyntheticEvent, useState } from 'react';
 import { LoginUI } from '@ui-pages';
+import { AppDispatch, useSelector } from '../../services/store';
+import { useDispatch } from 'react-redux';
+import {
+  loginUser,
+  selectUser,
+  selectLoginError,
+  selectIsUserDataLoading
+} from '../../slices/userSlice';
+import { Navigate } from 'react-router';
+import { Preloader } from '@ui';
 
 export const Login: FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const dispatch: AppDispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const loginError = useSelector(selectLoginError);
+  const isLoading = useSelector(selectIsUserDataLoading);
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
+    console.log('handleSubmit', email, password);
+    dispatch(loginUser({ email, password }));
   };
 
-  return (
+  return isLoading ? (
+    <Preloader />
+  ) : user ? (
+    <Navigate replace to='/' />
+  ) : (
     <LoginUI
-      errorText=''
+      errorText={loginError}
       email={email}
       setEmail={setEmail}
       password={password}

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { TUserState, TUser } from '../utils/types';
+import { TUser } from '../utils/types';
 import {
   updateUserApi,
   logoutApi,
@@ -9,23 +9,24 @@ import {
   TLoginData,
   loginUserApi
 } from '../utils/burger-api';
+import {
+  Loadings,
+  activateLoadingType,
+  deactivateLoadingType
+} from '../utils/checkLoading';
 import { setCookie } from '../utils/cookie';
 
 interface UserState {
-  isLoading: boolean;
-  user: TUser | null;
-  userState: TUserState;
+  isLoading: Loadings; // идет процесс обмена информацией с сервером
+  user: TUser | null; // данные о пользователе авторизованном, если есть, значит авторизация прошла
+  loginError: string; // текстовое сообщение об ошибке авторизации, если пустое, нет ошибки
 }
 
+// начальное состояние для слайса
 const initialState: UserState = {
-  isLoading: false,
+  isLoading: null,
   user: null,
-  userState: {
-    isAuthChecked: false,
-    isAuthenticated: false,
-    loginUserRequest: false,
-    loginError: ''
-  }
+  loginError: ''
 };
 
 export const loginUser = createAsyncThunk(
@@ -52,78 +53,75 @@ export const logoutUser = createAsyncThunk('logoutUser', async () =>
 const userSlice = createSlice({
   name: 'user',
   initialState,
-  reducers: {
-    setAuthFail: (state) => {
-      state.userState.isAuthChecked = true;
-      state.userState.isAuthenticated = false;
-    }
-  },
+  reducers: {},
   selectors: {
     selectUser: (sliceState) => sliceState.user,
-    selectIsAuthChecked: (sliceState) => sliceState.userState.isAuthChecked,
     selectIsUserDataLoading: (sliceState) => sliceState.isLoading,
-    selectLoginError: (sliceState) => sliceState.userState.loginError
+    selectLoginError: (sliceState) => sliceState.loginError
   },
   extraReducers: (builder) => {
     builder
       .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
+        state.isLoading = activateLoadingType(state.isLoading, 'registerUser');
       })
       .addCase(registerUser.rejected, (state, _) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(
+          state.isLoading,
+          'registerUser'
+        );
       })
       .addCase(registerUser.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(
+          state.isLoading,
+          'registerUser'
+        );
         state.user = action.payload.user;
         localStorage.setItem('refreshToken', action.payload.refreshToken);
         setCookie('accessToken', action.payload.accessToken);
       })
       .addCase(updateUser.pending, (state) => {
-        state.isLoading = true;
+        state.isLoading = activateLoadingType(state.isLoading, 'updateUser');
       })
       .addCase(updateUser.rejected, (state, _) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'updateUser');
       })
       .addCase(updateUser.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'updateUser');
         state.user = action.payload.user;
       })
       .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
-        state.userState.loginError = '';
+        state.isLoading = activateLoadingType(state.isLoading, 'loginUser');
+        state.loginError = '';
       })
       .addCase(loginUser.rejected, (state, _) => {
-        state.isLoading = false;
-        state.userState.loginError = 'Запрос отклонен сервером';
+        state.isLoading = deactivateLoadingType(state.isLoading, 'loginUser');
+        state.loginError = 'Запрос отклонен сервером';
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'loginUser');
         state.user = action.payload.user;
         localStorage.setItem('refreshToken', action.payload.refreshToken);
         setCookie('accessToken', action.payload.accessToken);
       })
       .addCase(getUser.pending, (state) => {
-        state.isLoading = true;
-        state.userState.isAuthChecked = false;
+        state.isLoading = activateLoadingType(state.isLoading, 'getUser');
+        state.user = null;
       })
       .addCase(getUser.rejected, (state, _) => {
-        state.isLoading = false;
-        state.userState.isAuthChecked = true;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'getUser');
       })
       .addCase(getUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.userState.isAuthChecked = true;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'getUser');
         state.user = action.payload.user;
       })
       .addCase(logoutUser.pending, (state) => {
-        state.isLoading = true;
+        state.isLoading = activateLoadingType(state.isLoading, 'logoutUser');
       })
       .addCase(logoutUser.rejected, (state, _) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'logoutUser');
       })
       .addCase(logoutUser.fulfilled, (state, _) => {
-        state.isLoading = false;
-        state.userState.isAuthChecked = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'logoutUser');
         state.user = null;
         localStorage.removeItem('refreshToken');
         setCookie('accessToken', '');
@@ -131,11 +129,6 @@ const userSlice = createSlice({
   }
 });
 
-export const {
-  selectLoginError,
-  selectIsAuthChecked,
-  selectUser,
-  selectIsUserDataLoading
-} = userSlice.selectors;
-export const { setAuthFail } = userSlice.actions;
+export const { selectLoginError, selectUser, selectIsUserDataLoading } =
+  userSlice.selectors;
 export default userSlice.reducer;

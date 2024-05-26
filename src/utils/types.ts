@@ -19,7 +19,6 @@ export type TConstructorIngredient = TIngredient & {
 export type TBurgerConstructor = {
   bun: Partial<TIngredient> | null;
   ingredients: TConstructorIngredient[];
-  orderRequest: boolean;
   orderModalData: TOrder | null;
 };
 

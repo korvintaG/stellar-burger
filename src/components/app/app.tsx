@@ -16,32 +16,24 @@ import { AppHeader } from '@components';
 import '../../index.css';
 import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { ProtectedRoute } from '../protected-route';
+import { ProtectedRoute } from '../protected-route/index';
 import { Modal } from '../modal';
 import { OrderInfo } from '../../components/order-info';
 import { IngredientDetails } from '../../components/ingredient-details';
 import { AppDispatch, useSelector } from '../../services/store';
 import { useDispatch } from 'react-redux';
-import {
-  getUser,
-  selectUser,
-  selectIsAuthChecked
-} from '../../slices/userSlice';
-import {
-  fetchIngredients,
-  fetchFeeds,
-  fetchOrders
-} from '../../slices/burgersSlice';
+import { getUser, selectIsUserDataLoading } from '../../slices/userSlice';
+import { fetchIngredients } from '../../slices/burgersSlice';
 import { useNavigate, useLocation } from 'react-router';
 import { getCookie } from '../../utils/cookie';
+import { isLoadingType } from '../../utils/checkLoading';
 
 const App = () => {
   const location = useLocation();
   const background = location.state?.background;
+  const isUselLoading = useSelector(selectIsUserDataLoading);
 
   const dispatch: AppDispatch = useDispatch();
-  const user = useSelector(selectUser);
-  const IsAuthChecked = useSelector(selectIsAuthChecked);
   const navigate = useNavigate();
 
   const modalClose = () => {
@@ -50,11 +42,9 @@ const App = () => {
 
   useEffect(() => {
     const atoken = getCookie('accessToken');
-    if (atoken && !IsAuthChecked) dispatch(getUser());
+    if (atoken && !isLoadingType(isUselLoading, 'getUser')) dispatch(getUser());
     dispatch(fetchIngredients());
-    dispatch(fetchFeeds());
-    if (user) dispatch(fetchOrders());
-  }, [user]);
+  }, []);
 
   return (
     <div className={styles.app}>
@@ -92,7 +82,10 @@ const App = () => {
           path='/register'
           element={
             <ProtectedRoute onlyUnAuth>
-              <Register />
+              <>
+                <AppHeader />
+                <Register />
+              </>
             </ProtectedRoute>
           }
         />
@@ -100,7 +93,10 @@ const App = () => {
           path='/forgot-password'
           element={
             <ProtectedRoute onlyUnAuth>
-              <ForgotPassword />
+              <>
+                <AppHeader />
+                <ForgotPassword />
+              </>
             </ProtectedRoute>
           }
         />
@@ -108,7 +104,10 @@ const App = () => {
           path='/reset-password'
           element={
             <ProtectedRoute onlyUnAuth>
-              <ResetPassword />
+              <>
+                <AppHeader />
+                <ResetPassword />
+              </>
             </ProtectedRoute>
           }
         />
@@ -165,6 +164,7 @@ const App = () => {
         />
         <Route path='/*' element={<NotFound404 />} />
       </Routes>
+
       {background && (
         <Routes>
           <Route

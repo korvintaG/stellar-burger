@@ -1,5 +1,10 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TIngredient, TBurgerConstructor, TOrder } from '../utils/types';
+import {
+  TIngredient,
+  TConstructorIngredient,
+  TBurgerConstructor,
+  TOrder
+} from '../utils/types';
 import {
   getOrdersApi,
   orderBurgerApi,
@@ -8,27 +13,38 @@ import {
   getFeedsApi
 } from '../utils/burger-api';
 import { v4 as randomId } from 'uuid';
+import {
+  Loadings,
+  activateLoadingType,
+  deactivateLoadingType
+} from '../utils/checkLoading';
 
 interface BurgerState {
-  ingrediens: TIngredient[];
-  feeds: TOrder[];
-  orders: TOrder[];
-  burgerConstructor: TBurgerConstructor;
-  isLoading: boolean;
-  currentOrder: TOrder | null;
+  ingredients: TIngredient[]; // инградинеты
+  buns: TIngredient[]; // булочки
+  mains: TIngredient[]; // основа
+  sauces: TIngredient[]; // соусы
+  feeds: TOrder[]; // общие заказы
+  orders: TOrder[]; // заказы текущего клиента
+  burgerConstructor: TBurgerConstructor; // состояние текущее конструкутора бургера
+  isLoading: Loadings; // процесс загрузки
+  currentOrder: TOrder | null; // текущий заказ для отображения
 }
 
+// начальное состояние слайса
 const initialState: BurgerState = {
-  ingrediens: [],
+  ingredients: [],
+  buns: [],
+  mains: [],
+  sauces: [],
   feeds: [],
   orders: [],
   burgerConstructor: {
     bun: null,
     ingredients: [],
-    orderRequest: false,
     orderModalData: null
   },
-  isLoading: false,
+  isLoading: null,
   currentOrder: null
 };
 
@@ -53,13 +69,18 @@ export const getOrder = createAsyncThunk('getOrder', async (num: number) =>
   getOrderByNumberApi(num)
 );
 
+/**
+ * Слайс дла работы с основными данными
+ */
 const burgerSlice = createSlice({
   name: 'burgers',
   initialState,
   reducers: {
+    // выбрать булочку
     setBun: (state, action: PayloadAction<TIngredient>) => {
       state.burgerConstructor.bun = action.payload;
     },
+    // установить/сбросить данные для модального окна вывода результата заказа сделанного
     setOrderModalData: (state, action: PayloadAction<TOrder | null>) => {
       if (!action.payload) {
         state.burgerConstructor.ingredients = [];
@@ -67,18 +88,23 @@ const burgerSlice = createSlice({
       }
       state.burgerConstructor.orderModalData = action.payload;
     },
-    addIngredient: (state, action: PayloadAction<TIngredient>) => {
-      state.burgerConstructor.ingredients.push({
-        ...action.payload,
-        id: randomId()
-      });
+    // добавить инградиент в бургер
+    addIngredient: {
+      reducer: (state, action: PayloadAction<TConstructorIngredient>) => {
+        state.burgerConstructor.ingredients.push(action.payload);
+      },
+      prepare: (ingredient: TIngredient) => ({
+        payload: { ...ingredient, id: randomId() }
+      })
     },
+    // удалить инградиент с бургера
     removeIngredient: (state, action: PayloadAction<string>) => {
       state.burgerConstructor.ingredients =
         state.burgerConstructor.ingredients.filter(
           (el) => el.id != action.payload
         );
     },
+    // поднять инградиент вверх по порядку
     upIngredient: (state, action: PayloadAction<string>) => {
       for (let i = 1; i < state.burgerConstructor.ingredients.length; i++)
         if (state.burgerConstructor.ingredients[i].id === action.payload) {
@@ -89,6 +115,7 @@ const burgerSlice = createSlice({
           break;
         }
     },
+    // опустить инградиент вниз по порядку
     downIngredient: (state, action: PayloadAction<string>) => {
       for (let i = 0; i < state.burgerConstructor.ingredients.length - 1; i++)
         if (state.burgerConstructor.ingredients[i].id === action.payload) {
@@ -101,72 +128,81 @@ const burgerSlice = createSlice({
     }
   },
   selectors: {
-    selectIngrediens: (sliceState) => sliceState.ingrediens,
-    selectBuns: (sliceState) =>
-      sliceState.ingrediens.filter((el) => el.type === 'bun'),
-    selectMain: (sliceState) =>
-      sliceState.ingrediens.filter((el) => el.type === 'main'),
-    selectSauce: (sliceState) =>
-      sliceState.ingrediens.filter((el) => el.type === 'sauce'),
-    selectburgerConstructor: (sliceState) => sliceState.burgerConstructor,
-    selectFeeds: (sliceState) => sliceState.feeds,
-    selectOrders: (sliceState) => sliceState.orders,
-    selectIsDataLoading: (sliceState) => sliceState.isLoading,
-    selectOrderRequest: (sliceState) =>
-      sliceState.burgerConstructor.orderRequest,
+    selectIngrediens: (sliceState) => sliceState.ingredients, // инградиенты
+    selectBuns: (sliceState) => sliceState.buns, // булочки
+    selectMain: (sliceState) => sliceState.mains, // основы
+    selectSauce: (sliceState) => sliceState.sauces, // соусы
+    selectburgerConstructor: (sliceState) => sliceState.burgerConstructor, // конструктор
+    selectFeeds: (sliceState) => sliceState.feeds, // заказы общие
+    selectOrders: (sliceState) => sliceState.orders, // заказы пользователя
+    selectIsDataLoading: (sliceState) => sliceState.isLoading, // процесс згрузки
     selectOrderModalData: (sliceState) =>
-      sliceState.burgerConstructor.orderModalData
+      sliceState.burgerConstructor.orderModalData, // состояние заказа после заказа
+    selectCurrentOrder: (sliceState) => sliceState.currentOrder // выбранный заказ
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchIngredients.pending, (state) => {
-        state.isLoading = true;
+        state.isLoading = activateLoadingType(
+          state.isLoading,
+          'fetchIngredients'
+        );
       })
       .addCase(fetchIngredients.rejected, (state, _) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(
+          state.isLoading,
+          'fetchIngredients'
+        );
       })
       .addCase(fetchIngredients.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.ingrediens = action.payload;
+        state.isLoading = deactivateLoadingType(
+          state.isLoading,
+          'fetchIngredients'
+        );
+        state.ingredients = action.payload;
+        state.buns = state.ingredients.filter((el) => el.type === 'bun');
+        state.mains = state.ingredients.filter((el) => el.type === 'main');
+        state.sauces = state.ingredients.filter((el) => el.type === 'sauce');
       })
       .addCase(fetchFeeds.pending, (state) => {
-        state.isLoading = true;
+        state.isLoading = activateLoadingType(state.isLoading, 'fetchFeeds');
       })
       .addCase(fetchFeeds.rejected, (state, _) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'fetchFeeds');
       })
       .addCase(fetchFeeds.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'fetchFeeds');
         state.feeds = action.payload.orders;
       })
       .addCase(fetchOrders.pending, (state) => {
-        state.isLoading = true;
+        state.isLoading = activateLoadingType(state.isLoading, 'fetchOrders');
       })
       .addCase(fetchOrders.rejected, (state, _) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'fetchOrders');
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'fetchOrders');
         state.orders = action.payload;
       })
       .addCase(orderBurger.pending, (state) => {
-        state.burgerConstructor.orderRequest = true;
+        state.isLoading = activateLoadingType(state.isLoading, 'orderBurger');
       })
       .addCase(orderBurger.rejected, (state, _) => {
-        state.burgerConstructor.orderRequest = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'orderBurger');
       })
       .addCase(orderBurger.fulfilled, (state, action) => {
+        state.isLoading = deactivateLoadingType(state.isLoading, 'orderBurger');
         state.burgerConstructor.orderModalData = action.payload.order;
-        state.burgerConstructor.orderRequest = false;
       })
       .addCase(getOrder.pending, (state) => {
-        state.isLoading = true;
+        state.isLoading = activateLoadingType(state.isLoading, 'fetchOrder');
+        state.currentOrder = null;
       })
       .addCase(getOrder.rejected, (state, _) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'fetchOrder');
       })
       .addCase(getOrder.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.isLoading = deactivateLoadingType(state.isLoading, 'fetchOrder');
         state.currentOrder = action.payload.orders[0];
       });
   }
@@ -174,7 +210,6 @@ const burgerSlice = createSlice({
 
 export const {
   selectOrderModalData,
-  selectOrderRequest,
   selectIsDataLoading,
   selectOrders,
   selectIngrediens,
@@ -182,6 +217,7 @@ export const {
   selectFeeds,
   selectMain,
   selectSauce,
+  selectCurrentOrder,
   selectburgerConstructor
 } = burgerSlice.selectors;
 export const {

@@ -1,31 +1,38 @@
 import { useSelector } from '../../services/store';
-import { selectIsAuthChecked, selectUser } from '../../slices/userSlice';
+import { selectUser, selectIsUserDataLoading } from '../../slices/userSlice';
 import { Navigate, useLocation, Outlet } from 'react-router';
 import { Preloader } from '../ui/preloader';
 import { getCookie } from '../../utils/cookie';
+import { isLoadingType } from '../../utils/checkLoading';
 
 type ProtectedRouteProps = {
   onlyUnAuth?: boolean;
   children: React.ReactElement;
 };
 
+/**
+ * Компонент защищенного маршрута
+ * @onlyUnAuth - boolean - только для неавторизованных
+ * @children - дочерние элементы
+ * @returns - отренедеренный компонент
+ */
 export const ProtectedRoute = ({
   onlyUnAuth,
   children
 }: ProtectedRouteProps) => {
-  const isAuthChecked = useSelector(selectIsAuthChecked); // isAuthCheckedSelector - селектор получения состояния загрузки пользователя
-  const user = useSelector(selectUser); // userDataSelector - селектор получения пользователя из store
+  const user = useSelector(selectUser);
+  const isLoading = useSelector(selectIsUserDataLoading);
   const location = useLocation();
 
   const atoken = getCookie('accessToken');
 
-  if (!isAuthChecked && atoken) {
+  if (isLoadingType(isLoading, 'getUser') && atoken) {
     // пока идёт чекаут пользователя, показываем прелоадер
     return <Preloader />;
   }
 
   if (!onlyUnAuth && !user) {
-    // если пользователь на странице авторизации и данных в хранилище нет, то делаем редирект
+    // если пользователь не на странице авторизации и данных в хранилище нет, то делаем редирект
     return <Navigate replace to='/login' state={{ from: location }} />; // в поле from объекта location.state записываем информацию о URL
   }
 

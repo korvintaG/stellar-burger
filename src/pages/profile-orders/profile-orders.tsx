@@ -1,10 +1,24 @@
 import { ProfileOrdersUI } from '@ui-pages';
-import { TOrder } from '@utils-types';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
+import { AppDispatch, useSelector } from '../../services/store';
+import { useDispatch } from 'react-redux';
+import {
+  selectOrders,
+  fetchOrders,
+  selectIsDataLoading
+} from '../../slices/burgersSlice';
+import { Preloader } from '@ui';
+import { isLoadingType } from '../../utils/checkLoading';
 
 export const ProfileOrders: FC = () => {
-  /** TODO: взять переменную из стора */
-  const orders: TOrder[] = [];
+  const orders = useSelector(selectOrders); // userDataSelector - селектор получения пользователя из store
+  const isDataLoading = useSelector(selectIsDataLoading);
+  const dispatch: AppDispatch = useDispatch();
 
-  return <ProfileOrdersUI orders={orders} />;
+  useEffect(() => {
+    dispatch(fetchOrders());
+  }, []);
+
+  if (isLoadingType(isDataLoading, 'fetchOrders')) return <Preloader />;
+  else return <ProfileOrdersUI orders={orders} />;
 };
