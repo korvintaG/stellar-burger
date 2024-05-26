@@ -1,3 +1,5 @@
+// функции фиксации начала и конца обмена определенного типа
+
 export type LoadingType =
   | 'fetchIngredients'
   | 'fetchFeeds'
@@ -11,6 +13,12 @@ export type LoadingType =
   | 'logoutUser';
 export type Loadings = LoadingType[] | null;
 
+/**
+ * Отметка о начале загрузки определенного типа
+ * @param loadings // массив загрузок
+ * @param loadingType // тип загрузки
+ * @returns void
+ */
 export function activateLoadingType(
   loadings: Loadings,
   loadingType: LoadingType
@@ -22,6 +30,12 @@ export function activateLoadingType(
   return loadings;
 }
 
+/**
+ * Отметка о конце загрузки определенного типа
+ * @param loadings // массив загрузок
+ * @param loadingType // тип загрузки
+ * @returns void
+ */
 export function deactivateLoadingType(
   loadings: Loadings,
   loadingType: LoadingType
@@ -34,6 +48,12 @@ export function deactivateLoadingType(
   return loadings;
 }
 
+/**
+ * Проверка - идет ли сейчас загрузка определенного типа
+ * @param loadings - массив загрузок
+ * @param loadingType - искомый тип
+ * @returns boolean - есть ли загрузка указанного типа или нет
+ */
 export function isLoadingType(
   loadings: Loadings,
   loadingType: LoadingType
