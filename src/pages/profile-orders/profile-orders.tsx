@@ -1,7 +1,6 @@
 import { ProfileOrdersUI } from '@ui-pages';
 import { FC, useEffect } from 'react';
-import { AppDispatch, useSelector } from '../../services/store';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from '../../services/store';
 import {
   selectOrders,
   fetchOrders,
@@ -13,7 +12,7 @@ import { isLoadingType } from '../../utils/checkLoading';
 export const ProfileOrders: FC = () => {
   const orders = useSelector(selectOrders); // userDataSelector - селектор получения пользователя из store
   const isDataLoading = useSelector(selectIsDataLoading);
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(fetchOrders());

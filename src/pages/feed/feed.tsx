@@ -1,8 +1,7 @@
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
 import { FC, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { useSelector, AppDispatch } from '../../services/store';
+import { useSelector, useDispatch } from '../../services/store';
 import {
   selectFeeds,
   fetchFeeds,
@@ -14,7 +13,7 @@ export const Feed: FC = () => {
   const orders = useSelector(selectFeeds);
   const isLoadind = useSelector(selectIsDataLoading);
 
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch = useDispatch();
   useEffect(() => {
     if (orders.length === 0) dispatch(fetchFeeds());
   }, []);

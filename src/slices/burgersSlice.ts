@@ -48,26 +48,14 @@ const initialState: BurgerState = {
   currentOrder: null
 };
 
-export const fetchIngredients = createAsyncThunk('fetchIngredients', async () =>
-  getIngredientsApi()
+export const fetchIngredients = createAsyncThunk(
+  'fetchIngredients',
+  getIngredientsApi
 );
-
-export const fetchFeeds = createAsyncThunk('fetchFeeds', async () =>
-  getFeedsApi()
-);
-
-export const orderBurger = createAsyncThunk(
-  'orderBurger',
-  async (data: string[]) => orderBurgerApi(data)
-);
-
-export const fetchOrders = createAsyncThunk('fetchOrders', async () =>
-  getOrdersApi()
-);
-
-export const getOrder = createAsyncThunk('getOrder', async (num: number) =>
-  getOrderByNumberApi(num)
-);
+export const fetchFeeds = createAsyncThunk('fetchFeeds', getFeedsApi);
+export const orderBurger = createAsyncThunk('orderBurger', orderBurgerApi);
+export const fetchOrders = createAsyncThunk('fetchOrders', getOrdersApi);
+export const getOrder = createAsyncThunk('getOrder', getOrderByNumberApi);
 
 /**
  * Слайс дла работы с основными данными

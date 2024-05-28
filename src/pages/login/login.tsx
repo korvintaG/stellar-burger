@@ -1,7 +1,6 @@
 import { FC, SyntheticEvent, useState } from 'react';
 import { LoginUI } from '@ui-pages';
-import { AppDispatch, useSelector } from '../../services/store';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from '../../services/store';
 import {
   loginUser,
   selectUser,
@@ -14,7 +13,7 @@ import { Preloader } from '@ui';
 export const Login: FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const loginError = useSelector(selectLoginError);
   const isLoading = useSelector(selectIsUserDataLoading);

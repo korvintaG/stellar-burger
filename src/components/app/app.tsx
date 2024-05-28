@@ -15,13 +15,12 @@ import { AppHeader } from '@components';
 
 import '../../index.css';
 import { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useParams } from 'react-router-dom';
 import { ProtectedRoute } from '../protected-route/index';
 import { Modal } from '../modal';
 import { OrderInfo } from '../../components/order-info';
 import { IngredientDetails } from '../../components/ingredient-details';
-import { AppDispatch, useSelector } from '../../services/store';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from '../../services/store';
 import { getUser, selectIsUserDataLoading } from '../../slices/userSlice';
 import { fetchIngredients } from '../../slices/burgersSlice';
 import { useNavigate, useLocation } from 'react-router';
@@ -32,12 +31,20 @@ const App = () => {
   const location = useLocation();
   const background = location.state?.background;
   const isUselLoading = useSelector(selectIsUserDataLoading);
-
-  const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const modalClose = () => {
     navigate(-1);
+  };
+
+  /**
+   * Функция формирующая локальный заголовок заказа из хука
+   * @returns - строка № заказа
+   */
+  const getParamNumber = (): string => {
+    const par = useParams();
+    return '#' + par.number!;
   };
 
   useEffect(() => {
@@ -48,33 +55,15 @@ const App = () => {
 
   return (
     <div className={styles.app}>
+      <AppHeader />
       <Routes location={background || location}>
-        <Route
-          path='/'
-          element={
-            <>
-              <AppHeader />
-              <ConstructorPage />
-            </>
-          }
-        />
-        <Route
-          path='/feed'
-          element={
-            <>
-              <AppHeader />
-              <Feed />
-            </>
-          }
-        />
+        <Route path='/' element={<ConstructorPage />} />
+        <Route path='/feed' element={<Feed />} />
         <Route
           path='/login'
           element={
             <ProtectedRoute onlyUnAuth>
-              <>
-                <AppHeader />
-                <Login />
-              </>
+              <Login />
             </ProtectedRoute>
           }
         />
@@ -82,10 +71,7 @@ const App = () => {
           path='/register'
           element={
             <ProtectedRoute onlyUnAuth>
-              <>
-                <AppHeader />
-                <Register />
-              </>
+              <Register />
             </ProtectedRoute>
           }
         />
@@ -93,10 +79,7 @@ const App = () => {
           path='/forgot-password'
           element={
             <ProtectedRoute onlyUnAuth>
-              <>
-                <AppHeader />
-                <ForgotPassword />
-              </>
+              <ForgotPassword />
             </ProtectedRoute>
           }
         />
@@ -104,10 +87,7 @@ const App = () => {
           path='/reset-password'
           element={
             <ProtectedRoute onlyUnAuth>
-              <>
-                <AppHeader />
-                <ResetPassword />
-              </>
+              <ResetPassword />
             </ProtectedRoute>
           }
         />
@@ -115,10 +95,7 @@ const App = () => {
           path='/profile'
           element={
             <ProtectedRoute>
-              <>
-                <AppHeader />
-                <Profile />
-              </>
+              <Profile />
             </ProtectedRoute>
           }
         />
@@ -126,39 +103,17 @@ const App = () => {
           path='/profile/orders'
           element={
             <ProtectedRoute>
-              <>
-                <AppHeader />
-                <ProfileOrders />
-              </>
+              <ProfileOrders />
             </ProtectedRoute>
           }
         />
-        <Route
-          path='/feed/:number'
-          element={
-            <>
-              <AppHeader />
-              <OrderInfo />
-            </>
-          }
-        />
-        <Route
-          path='/ingredients/:id'
-          element={
-            <>
-              <AppHeader />
-              <IngredientDetails />
-            </>
-          }
-        />
+        <Route path='/feed/:number' element={<OrderInfo />} />
+        <Route path='/ingredients/:id' element={<IngredientDetails />} />
         <Route
           path='/profile/orders/:number'
           element={
             <ProtectedRoute>
-              <>
-                <AppHeader />
-                <OrderInfo />
-              </>
+              <OrderInfo />
             </ProtectedRoute>
           }
         />
@@ -170,7 +125,7 @@ const App = () => {
           <Route
             path='/feed/:number'
             element={
-              <Modal title='' onClose={modalClose}>
+              <Modal title={getParamNumber} onClose={modalClose}>
                 <OrderInfo />
               </Modal>
             }
@@ -178,7 +133,7 @@ const App = () => {
           <Route
             path='/ingredients/:id'
             element={
-              <Modal title='' onClose={modalClose}>
+              <Modal title='Детали ингредиента' onClose={modalClose}>
                 <IngredientDetails />
               </Modal>
             }
@@ -187,7 +142,7 @@ const App = () => {
             path='/profile/orders/:number'
             element={
               <ProtectedRoute>
-                <Modal title='' onClose={modalClose}>
+                <Modal title={getParamNumber} onClose={modalClose}>
                   <OrderInfo />
                 </Modal>
               </ProtectedRoute>
