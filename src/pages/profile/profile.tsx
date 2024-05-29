@@ -1,21 +1,35 @@
 import { ProfileUI } from '@ui-pages';
 import { FC, SyntheticEvent, useEffect, useState } from 'react';
+import { Preloader } from '@ui';
+import { useDispatch, useSelector } from '../../services/store';
+import { useForm } from '../../hooks/useForm';
+import {
+  updateUser,
+  selectUser,
+  selectIsUserDataLoading
+} from '../../slices/userSlice';
+import { FormValues } from '../../components/ui/pages/profile/type';
+
+type ProfileFormFields = {
+  name?: string;
+  email?: string;
+  password?: string;
+};
 
 export const Profile: FC = () => {
-  /** TODO: взять переменную из стора */
-  const user = {
-    name: '',
-    email: ''
-  };
+  const user = useSelector(selectUser); // userDataSelector - селектор получения пользователя из store
+  const isLoading = useSelector(selectIsUserDataLoading);
+  const dispatch = useDispatch();
 
-  const [formValue, setFormValue] = useState({
+  if (!user) return null;
+  const { values, handleChange, setValues, reset } = useForm<FormValues>({
     name: user.name,
     email: user.email,
     password: ''
   });
 
   useEffect(() => {
-    setFormValue((prevState) => ({
+    setValues((prevState) => ({
       ...prevState,
       name: user?.name || '',
       email: user?.email || ''
@@ -23,39 +37,35 @@ export const Profile: FC = () => {
   }, [user]);
 
   const isFormChanged =
-    formValue.name !== user?.name ||
-    formValue.email !== user?.email ||
-    !!formValue.password;
+    values.name !== user?.name ||
+    values.email !== user?.email ||
+    !!values.password;
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
+    dispatch(
+      updateUser({
+        name: values.name,
+        email: values.email,
+        password: values.password
+      })
+    );
   };
 
   const handleCancel = (e: SyntheticEvent) => {
     e.preventDefault();
-    setFormValue({
-      name: user.name,
-      email: user.email,
-      password: ''
-    });
+    reset();
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormValue((prevState) => ({
-      ...prevState,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  return (
+  return isLoading ? (
+    <Preloader />
+  ) : (
     <ProfileUI
-      formValue={formValue}
+      formValue={values}
       isFormChanged={isFormChanged}
       handleCancel={handleCancel}
       handleSubmit={handleSubmit}
-      handleInputChange={handleInputChange}
+      handleInputChange={handleChange}
     />
   );
-
-  return null;
 };
