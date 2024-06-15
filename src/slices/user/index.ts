@@ -12,7 +12,7 @@ interface UserState {
   isLoading: boolean; // идет процесс обмена информацией с сервером
   user: TUser | null; // данные о пользователе авторизованном, если есть, значит авторизация прошла
   loginError: string; // текстовое сообщение об ошибке авторизации, если пустое, нет ошибки
-  otherError: string;
+  otherError: string; // текстовое сообщение об иной ошибке
 }
 
 // начальное состояние для слайса
@@ -29,6 +29,9 @@ export const updateUser = createAsyncThunk('updateUser', updateUserApi);
 export const getUser = createAsyncThunk('getUser', getUserApi);
 export const logoutUser = createAsyncThunk('logoutUser', logoutApi);
 
+/**
+ * Слайс работы с авторизацией и данными пользователя
+ */
 const userSlice = createSlice({
   name: 'user',
   initialState,

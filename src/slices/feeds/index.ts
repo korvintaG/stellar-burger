@@ -18,7 +18,7 @@ export const initialState: FeedsState = {
 export const fetchFeeds = createAsyncThunk('fetchFeeds', getFeedsApi);
 
 /**
- * Слайс дла работы с основными данными
+ * Слайс дла работы с лентой заказов
  */
 const feedsSlice = createSlice({
   name: 'feeds',

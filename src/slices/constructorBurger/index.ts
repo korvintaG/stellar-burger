@@ -92,7 +92,6 @@ const constructorSlice = createSlice({
       })
       .addCase(orderBurger.fulfilled, (state, action) => {
         state.isLoading = false;
-        //console.log('orderBurger.fulfilled',action.payload);
         state.orderModalData = action.payload.order;
       });
   }

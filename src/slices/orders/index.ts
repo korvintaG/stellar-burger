@@ -21,7 +21,7 @@ export const fetchOrders = createAsyncThunk('fetchOrders', getOrdersApi);
 export const getOrder = createAsyncThunk('getOrder', getOrderByNumberApi);
 
 /**
- * Слайс дла работы с основными данными
+ * Слайс дла работы с заказами текущего пользователя
  */
 const ordersSlice = createSlice({
   name: 'orders',

@@ -21,15 +21,6 @@ export const initialState: IngredientsState = {
   error: ''
 };
 
-/*export function addIngredientData(state: IngredientsState, ingredients: TIngredient[]) : IngredientsState {
-  let newState ={...state};
-  newState.ingredients = ingredients;
-  newState.buns = newState.ingredients.filter((el) => el.type === 'bun');
-  newState.mains = newState.ingredients.filter((el) => el.type === 'main');
-  newState.sauces = newState.ingredients.filter((el) => el.type === 'sauce');
-  return newState;
-}*/
-
 export function getBuns(ingredients: TIngredient[]): TIngredient[] {
   return ingredients.filter((el) => el.type === 'bun');
 }
@@ -42,20 +33,13 @@ export function getSauces(ingredients: TIngredient[]): TIngredient[] {
   return ingredients.filter((el) => el.type === 'sauce');
 }
 
-/*export function addIngredientData(state: IngredientsState, ingredients: TIngredient[])  {
-  state.ingredients = ingredients;
-  state.buns = state.ingredients.filter((el) => el.type === 'bun');
-  state.mains = state.ingredients.filter((el) => el.type === 'main');
-  state.sauces = state.ingredients.filter((el) => el.type === 'sauce');
-}*/
-
 export const fetchIngredients = createAsyncThunk(
   'fetchIngredients',
   getIngredientsApi
 );
 
 /**
- * Слайс дла работы с основными данными
+ * Слайс дла работы с инградиентами
  */
 const burgerSlice = createSlice({
   name: 'ingredients',
@@ -77,7 +61,6 @@ const burgerSlice = createSlice({
       .addCase(fetchIngredients.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message!;
-        //console.log(`Error - ${state.error}`);
       })
       .addCase(fetchIngredients.fulfilled, (state, action) => {
         state.isLoading = false;
