@@ -1,3 +1,11 @@
+declare namespace Cypress {
+  interface Chainable {
+    makeBurger122: () => void; // создаем бургер из булки ID=1 и инградиентов двух с ID=2
+    closeModal: () => void; // закрываем модальное окно
+    openIngredient1Modal: () => void; // открываем инградиент ID=1 в модальном окне
+  }
+}
+
 describe('проверяем доступность приложения', function() {
 
   // перед каждым тестом
@@ -5,10 +13,23 @@ describe('проверяем доступность приложения', funct
     cy.setCookie('accessToken','12345')
     cy.intercept('GET','api/ingredients', { fixture : 'ingredients.json'})
     cy.intercept('GET','api/auth/user', { fixture : 'getuser.json'})
-    cy.intercept('POST','api/orders', { fixture : 'afterorder.json'})
-    cy.intercept('POST','api/auth/login', { fixture : 'loginuser.json'})
-    
-    cy.visit('http://localhost:4000'); 
+    cy.visit(''); 
+    // определяем алиасы
+    cy.get('[data-cy=ingredient-1]').contains('Добавить').as('ingredient1AddBtn');
+    cy.get('[data-cy=ingredient-2]').contains('Добавить').as('ingredient2AddBtn');
+    cy.get('[data-cy=ingredient-1] > a').as('ingredient1URL');
+    // добавляем кастомные команды Cypress
+    Cypress.Commands.add('makeBurger122', () => {
+      cy.get('@ingredient1AddBtn').click();
+      cy.get('@ingredient2AddBtn').click();
+      cy.get('@ingredient2AddBtn').click();
+    });
+    Cypress.Commands.add('closeModal', () => {
+      cy.get('[data-cy=modal-close-button]').click();
+    });
+    Cypress.Commands.add('openIngredient1Modal', () => {
+      cy.get('@ingredient1URL').click();
+    });
   });
 
   afterEach( function() {
@@ -17,12 +38,10 @@ describe('проверяем доступность приложения', funct
   });
 
   it('добавление ингредиента из списка в конструктор', function() {
-      cy.get('[data-cy=ingredient-1]').contains('Добавить').click();
+      cy.makeBurger122();
       // есть булка и сверху и снизу
       cy.get('[data-cy=constructor-bun-top]').contains('Булка N1').should('exist');
       cy.get('[data-cy=constructor-bun-bottom]').contains('Булка N1').should('exist');
-      cy.get('[data-cy=ingredient-2]').contains('Добавить').click();
-      cy.get('[data-cy=ingredient-2]').contains('Добавить').click();
       // что есть оба добавленных инградиента
       cy.get('[data-cy=constructor-ingredients] > li').then((lis) => {
         expect(lis, '2 items').to.have.length(2);
@@ -33,25 +52,24 @@ describe('проверяем доступность приложения', funct
 
   it(' работа модальных окон', function() {
     cy.get('[data-cy=IngredientDetailsUI]').should('not.exist');
-    cy.get('[data-cy=ingredient-1] > a').click();
+    cy.openIngredient1Modal();
     cy.get('[data-cy=modalUI]').should('exist'); // модальное окно появилось
     cy.get('[data-cy=ingredient-name]').should('have.text','Булка N1'); // открылось то что нужно
-    cy.get('[data-cy=modal-close-button]').click();
+    cy.closeModal();
     cy.get('[data-cy=modalUI]').should('not.exist'); // модальное окно закрылось по крестику
-    cy.get('[data-cy=ingredient-1] > a').click(); // опять открываем модальное окно
+    cy.openIngredient1Modal(); // опять открываем модальное окно
     cy.get('[data-cy=modalUI]').should('exist');
     cy.get('[data-cy=modal-overlay]').click({force: true}); // принудительно кликаем, несмотря на ругань о перекрытии
     cy.get('[data-cy=modalUI]').should('not.exist'); // модальное окно закрылось поклику на оверлей
   });  
 
   it('функционал создания заказа', function() {
-      cy.get('[data-cy=ingredient-1]').contains('Добавить').click();
-      cy.get('[data-cy=ingredient-2]').contains('Добавить').click();
-      cy.get('[data-cy=ingredient-2]').contains('Добавить').click();
+      cy.makeBurger122();
       cy.get('[data-cy=order-register-button]').contains('Оформить заказ').click();
+      cy.intercept('POST','api/orders', { fixture : 'afterorder.json'}); // перехватываем запрос
       cy.get('[data-cy=modalUI]').should('exist'); // модальное окно появилось
       cy.get('[data-cy=order-number]').should('have.text', '42216'); // и содержит № заказа
-      cy.get('[data-cy=modal-close-button]').click(); // закрываем модальное окно
+      cy.closeModal();
       cy.get('[data-cy=modalUI]').should('not.exist'); // проверяем что нет такого
       // проверяем, что пуст конструктор
       cy.get('[data-cy=choose-bun-top]').should('have.text', 'Выберите булки');

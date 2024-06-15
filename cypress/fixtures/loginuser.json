@@ -1,9 +1,0 @@
-{
-    "success": true,
-    "accessToken": "123",
-    "refreshToken": "456",
-    "user": {
-        "email": "korvin@kati.ru",
-        "name": "korvinmock"
-    }
-}
