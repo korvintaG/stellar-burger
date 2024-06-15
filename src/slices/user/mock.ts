@@ -28,7 +28,7 @@ export const testGet = {
   }
 };
 
-const password='password';
+const password = 'password';
 
 export const login: TLoginData = {
   email: testLogin.user.email,

@@ -1,5 +1,14 @@
 import { expect, test, describe } from '@jest/globals';
-import { testLogin, testUpdate, testGet, login, errorText, errorOldText, register, update } from './mock';
+import {
+  testLogin,
+  testUpdate,
+  testGet,
+  login,
+  errorText,
+  errorOldText,
+  register,
+  update
+} from './mock';
 import userSliceReducer, {
   loginUser,
   registerUser,
@@ -7,7 +16,6 @@ import userSliceReducer, {
   getUser,
   initialState
 } from '.';
-
 
 describe('[loginUser] ', () => {
   test('Вызов редьюсера loginUser - отображение процесса загрузки', () => {

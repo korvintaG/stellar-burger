@@ -27,7 +27,7 @@ export const testOrder: TNewOrderResponse = {
   }
 };
 
-export const testOrderResponse:TBurgerConstructor= {
+export const testOrderResponse: TBurgerConstructor = {
   orderModalData: testOrder.order,
   error: '',
   isLoading: false,
