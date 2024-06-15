@@ -44,7 +44,7 @@ describe('проверяем доступность приложения', funct
     cy.get('[data-cy=modalUI]').should('not.exist'); // модальное окно закрылось поклику на оверлей
   });  
 
-  it('фунцкионал создания заказа', function() {
+  it('функционал создания заказа', function() {
       cy.get('[data-cy=ingredient-1]').contains('Добавить').click();
       cy.get('[data-cy=ingredient-2]').contains('Добавить').click();
       cy.get('[data-cy=ingredient-2]').contains('Добавить').click();
