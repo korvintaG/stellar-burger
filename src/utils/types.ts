@@ -20,6 +20,8 @@ export type TBurgerConstructor = {
   bun: Partial<TIngredient> | null;
   ingredients: TConstructorIngredient[];
   orderModalData: TOrder | null;
+  isLoading: boolean;
+  error: string;
 };
 
 export type TOrder = {
